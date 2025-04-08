@@ -14,7 +14,7 @@ with st.sidebar:
     "[How to get an OpenAI API key?](https://platform.openai.com/account/api-keys)"
 
 st.header('Whisper WebUI', divider='violet')
-st.caption('created by Education Victory')
+st.caption('')
 
 st.subheader("What do you want Whisper to do for you?", divider=True)
 usecase_option = st.selectbox(
