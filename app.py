@@ -8,7 +8,7 @@ import tempfile
 import os
 import warnings
 from pydub.utils import which
-
+from difflib import SequenceMatcher
 
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
@@ -80,7 +80,8 @@ if usecase_option == "Create transcription":
 
                     song = AudioSegment.from_file(tmp_path)
                     chunk_length_ms = 10 * 60 * 1000
-                    chunks = [song[i:i + chunk_length_ms] for i in range(0, len(song), chunk_length_ms)]
+                    overlap_ms = 2 * 1000 
+                    chunks = [song[i:i + chunk_length_ms + overlap_ms] for i in range(0, len(song), chunk_length_ms)]
 
                     for idx, chunk in enumerate(chunks):
                         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as chunk_file:
@@ -96,7 +97,7 @@ if usecase_option == "Create transcription":
                                 transcription_parts.append(response.strip())
                             else:
                                 transcription_parts.append(str(response))
-                                
+
                             os.unlink(chunk_file.name)
 
                     os.unlink(tmp_path)
