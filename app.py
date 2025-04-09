@@ -92,7 +92,11 @@ if usecase_option == "Create transcription":
                                 prompt=prompt,
                                 response_format="text",  # temporary, simplify merging
                             )
-                            transcription_parts.append(response.text.strip())
+                            if format_option == "text":
+                                transcription_parts.append(response.strip())
+                            else:
+                                transcription_parts.append(str(response))
+                                
                             os.unlink(chunk_file.name)
 
                     os.unlink(tmp_path)
