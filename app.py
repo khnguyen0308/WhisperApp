@@ -92,13 +92,13 @@ if usecase_option == "Create transcription":
                                 prompt=prompt,
                                 response_format="text",  # temporary, simplify merging
                             )
-                            transcription_parts.append(response)
+                            transcription_parts.append(response.text.strip())
                             os.unlink(chunk_file.name)
 
                     os.unlink(tmp_path)
 
-                full_transcription = "\n".join(str(part) for part in transcription_parts)
-
+                full_transcription = "\n".join(transcription_parts)
+    
                 if format_option in ['text', 'srt', 'vtt']:
                     st.text_area("Transcription Output", value=full_transcription, height=400)
                 else:
