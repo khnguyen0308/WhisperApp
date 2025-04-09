@@ -6,7 +6,13 @@ from iso_639_languages import iso_639_languages
 from pydub import AudioSegment
 import tempfile
 import os
+import warnings
+from pydub.utils import which
 
+
+warnings.filterwarnings("ignore", category=SyntaxWarning)
+
+AudioSegment.converter = which("ffmpeg")
 st.set_page_config(layout="wide")
 
 with st.sidebar:
@@ -24,7 +30,6 @@ usecase_option = st.selectbox(
 
 st.subheader("Audio file", divider=True)
 audio_file = st.file_uploader('Choose an audio file', type=["flac", "m4a", "mp3", "mp4", "mpeg", "mpga", "oga", "ogg", "wav", "webm"])
-st.markdown('[How to handle file bigger than 25mb?](https://platform.openai.com/docs/guides/speech-to-text/longer-inputs)')
 
 st.subheader("Option customization", divider=True)
 if usecase_option == "Create transcription":
@@ -108,7 +113,7 @@ elif usecase_option == "Create translation":
     with col2:
         format_option = st.selectbox(
             "Output Format (Optional):",
-            ['json', 'text', 'srt', 'verbose_json', 'vtt']
+            ['text', 'srt', 'verbose_json', 'vtt']
         )
 
     if audio_file:
