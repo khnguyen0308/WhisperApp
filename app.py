@@ -49,7 +49,7 @@ if usecase_option == "Create transcription":
     with col3:
         format_option = st.selectbox(
             "Output Format (Optional):",
-            ['json', 'text', 'srt', 'verbose_json', 'vtt']
+            ['text', 'srt', 'vtt']
         )
 
     if audio_file:
@@ -113,7 +113,7 @@ elif usecase_option == "Create translation":
     with col2:
         format_option = st.selectbox(
             "Output Format (Optional):",
-            ['text', 'srt', 'verbose_json', 'vtt']
+            ['text', 'srt', 'vtt']
         )
 
     if audio_file:
