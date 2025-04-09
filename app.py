@@ -9,11 +9,22 @@ import os
 import warnings
 from pydub.utils import which
 from difflib import SequenceMatcher
+from pydub import AudioSegment
+from pydub.effects import normalize, low_pass_filter, high_pass_filter
 
 warnings.filterwarnings("ignore", category=SyntaxWarning)
 
 AudioSegment.converter = which("ffmpeg")
 st.set_page_config(layout="wide")
+
+def preprocess_audio(file_path: str) -> AudioSegment:
+    audio = AudioSegment.from_file(file_path)
+    audio = audio.set_channels(1)  # mono
+    audio = audio.set_frame_rate(16000)  # preferred for Whisper
+    audio = normalize(audio)  # volume normalization
+    audio = high_pass_filter(audio, cutoff=100)  # cut hum
+    audio = low_pass_filter(audio, cutoff=8000)  # cut hiss
+    return audio
 
 with st.sidebar:
     openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
@@ -78,7 +89,8 @@ if usecase_option == "Create transcription":
                         tmp.write(audio_file.read())
                         tmp_path = tmp.name
 
-                    song = AudioSegment.from_file(tmp_path)
+                    song = preprocess_audio(tmp_path)
+
                     chunk_length_ms = 10 * 60 * 1000
                     overlap_ms = 2 * 1000 
                     chunks = [song[i:i + chunk_length_ms + overlap_ms] for i in range(0, len(song), chunk_length_ms)]
