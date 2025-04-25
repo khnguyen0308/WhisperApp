@@ -1,0 +1,6 @@
+openai==0.28.1
+python-dotenv>=1.0.0
+pydub>=0.25.1
+flask-assets>=2.0
+libsass>=0.21.0
+flask>=2.0.0
