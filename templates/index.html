@@ -28,10 +28,10 @@
 						<nav>
 							<ul>
 								<li><a href="#intro">Start</a></li>
-								<li><a href="#work">Guide</a></li>
+								<li><a href="#work">Note</a></li>
 								<!-- <li><a href="#about">About</a></li> -->
 								<!-- <li><a href="#contact">Contact</a></li> -->
-								<li><a href="#elements">Elements</a></li>
+								<!-- <li><a href="#elements">Elements</a></li> -->
 							</ul>
 						</nav>
 					</header>
@@ -154,12 +154,39 @@
 								});
 							</script>
 						<!-- Work -->
-							<article id="work">
-								<h2 class="major">Guide</h2>
-								<span class="image main"><img src="{{ url_for('static', filename='images/pic02.jpg') }}" alt="" /></span>
-								<p>Adipiscing magna sed dolor elit. Praesent eleifend dignissim arcu, at eleifend sapien imperdiet ac. Aliquam erat volutpat. Praesent urna nisi, fringila lorem et vehicula lacinia quam. Integer sollicitudin mauris nec lorem luctus ultrices.</p>
-								<p>Nullam et orci eu lorem consequat tincidunt vivamus et sagittis libero. Mauris aliquet magna magna sed nunc rhoncus pharetra. Pellentesque condimentum sem. In efficitur ligula tate urna. Maecenas laoreet massa vel lacinia pellentesque lorem ipsum dolor. Nullam et orci eu lorem consequat tincidunt. Vivamus et sagittis libero. Mauris aliquet magna magna sed nunc rhoncus amet feugiat tempus.</p>
-							</article>
+						<article id="work">
+							<h2 class="major">Note</h2>
+							<span class="image main">
+								<img src="{{ url_for('static', filename='images/pic02.jpg') }}" alt="Transcription Guide" />
+							</span>
+						
+							<p>
+								Welcome to the NOIS Whisper Transcription Web Application. This tool uses OpenAI’s Whisper model to transcribe audio into text with high accuracy, especially for clear recordings.
+							</p>
+						
+							<h3>How to Get the Best Transcription Results</h3>
+							<ul>
+								<li>🎙️ <strong>Use clear audio:</strong> Ensure the speaker’s voice is close to the microphone and not muffled.</li>
+								<li>🔇 <strong>Minimize background noise:</strong> Turn off fans, TVs, or other noise sources during recording.</li>
+								<li>📁 <strong>Upload high-quality audio files:</strong> Preferably in WAV or MP3 format, recorded in a quiet environment.</li>
+								<li>🎧 <strong>Limit multiple speakers:</strong> If possible, keep one speaker at a time to improve accuracy.</li>
+							</ul>
+						
+							<h3>Understanding Transcription Issues</h3>
+							<p>
+								If your output includes repeated or nonsensical phrases, it's often due to poor audio quality. Common causes include:
+							</p>
+							<ul>
+								<li>🎵 Overlapping voices or music</li>
+								<li>🌪️ Wind or environmental noise</li>
+								<li>📉 Low recording volume or distorted audio</li>
+							</ul>
+							<p>
+								In such cases, consider cleaning your audio with a noise reduction tool before uploading.
+							</p>
+						
+						</article>
+						
 
 						<!-- About -->
 							<article id="about">
