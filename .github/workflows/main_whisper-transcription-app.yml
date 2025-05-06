@@ -4,11 +4,16 @@
 
 name: Build and deploy Python app to Azure Web App - whisper-transcription-app
 
+
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+  
+env:
+  AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+  AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
 
 jobs:
   build:
