@@ -3,6 +3,7 @@ import os
 import tempfile
 from model import transcribe_audio, convert_to_srt, convert_to_vtt
 import time
+import uuid
 
 app = Flask(__name__)
 # Define a persistent directory for storing transcription files
@@ -14,13 +15,6 @@ def index():
     return render_template('index.html')
 
 @app.route('/transcribe', methods=['POST'])
-# def cleanup_old_files(directory, max_age_seconds=86400):  # 24 hours
-#     now = time.time()
-#     for filename in os.listdir(directory):
-#         file_path = os.path.join(directory, filename)
-#         if os.path.isfile(file_path) and now - os.path.getmtime(file_path) > max_age_seconds:
-#             os.remove(file_path)
-
 def transcribe():
     if 'audio-file' not in request.files:
         return jsonify({'error': 'No audio file provided'}), 400
@@ -32,8 +26,12 @@ def transcribe():
         return jsonify({'error': 'No selected file'}), 400
 
     try:
-        # Save the uploaded file temporarily
+        # Generate a unique identifier for the file
+        unique_id = str(uuid.uuid4())
         original_filename = os.path.splitext(audio_file.filename)[0]  # Get the base name without extension
+        unique_filename = f"{original_filename}_{unique_id}.mp3"
+
+        # Save the uploaded file temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
             audio_file.save(temp_audio.name)
             audio_file_path = temp_audio.name
@@ -42,7 +40,7 @@ def transcribe():
         transcription_text = transcribe_audio(audio_file_path, language)
 
         # Save transcription to the requested format in the persistent directory
-        transcription_filename = f"{original_filename}.{output_format}"
+        transcription_filename = f"{original_filename}_{unique_id}.{output_format}"
         transcription_file_path = os.path.join(PERSISTENT_DIR, transcription_filename)
         with open(transcription_file_path, 'w', encoding='utf-8') as f:
             if output_format == 'srt':
