@@ -4,6 +4,9 @@ import tempfile
 from model import transcribe_audio, convert_to_srt, convert_to_vtt
 import time
 import uuid
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 # Define a persistent directory for storing transcription files
@@ -32,9 +35,8 @@ def transcribe():
         unique_filename = f"{original_filename}_{unique_id}.mp3"
 
         # Save the uploaded file temporarily
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_audio:
-            audio_file.save(temp_audio.name)
-            audio_file_path = temp_audio.name
+        audio_file_path = os.path.join(PERSISTENT_DIR, unique_filename)
+        audio_file.save(audio_file_path)
 
         # Transcribe the audio file
         transcription_text = transcribe_audio(audio_file_path, language)

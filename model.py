@@ -4,6 +4,10 @@ import tempfile
 from pydub import AudioSegment
 from pydub.effects import normalize, low_pass_filter, high_pass_filter
 from pydub.utils import which
+from dotenv import load_dotenv
+
+load_dotenv()
+print("Using endpoint:", os.getenv("AZURE_OPENAI_ENDPOINT"))
 
 # Load environment variables
 openai.api_key = os.getenv("AZURE_OPENAI_API_KEY")

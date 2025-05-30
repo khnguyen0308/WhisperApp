@@ -54,6 +54,9 @@
 												<input type="file" name="audio-file" id="audio-file" accept=".flac, .m4a, .mp3, .mp4, .mpeg, .mpga, .oga, .ogg, .wav, .webm" />
 											</div>
 											<div class="field modern-field">
+												<progress id="upload-progress" value="0" max="100" style="width:100%; display:none;"></progress>
+											</div>
+											<div class="field modern-field">
 												<label for="input-language" class="small-label">Input Language</label>
 												<select name="language" id="language-category">
 													<!-- Options will be dynamically populated -->
@@ -101,57 +104,71 @@
 									})
 									.catch(error => console.error('Error loading languages:', error));
 							
-								document.getElementById('transcribe-button').addEventListener('click', async () => {
+								document.getElementById('transcribe-button').addEventListener('click', function () {
 									const transcribeButton = document.getElementById('transcribe-button');
-									const formData = new FormData();
 									const audioFile = document.getElementById('audio-file').files[0];
 									const language = document.getElementById('language-category').value;
 									const outputFormat = document.getElementById('output-format').value;
-							
+									const progressBar = document.getElementById('upload-progress');
+
 									if (!audioFile) {
 										alert('Please select an audio file.');
 										return;
 									}
-							
-									// Disable the button and show loading state
-									transcribeButton.disabled = true;
-									transcribeButton.textContent = 'Transcribing...';
-							
-									// Add a loading indicator
-									const loadingIndicator = document.createElement('div');
-									loadingIndicator.id = 'loading-indicator';
-									loadingIndicator.textContent = 'Processing...';
-									loadingIndicator.style.marginTop = '1rem';
-									transcribeButton.parentElement.appendChild(loadingIndicator);
-							
+
+									// Prepare form data
+									const formData = new FormData();
 									formData.append('audio-file', audioFile);
 									formData.append('language', language);
 									formData.append('output-format', outputFormat);
-							
-									try {
-										const response = await fetch('/transcribe', {
-											method: 'POST',
-											body: formData
-										});
-							
-										const result = await response.json();
-										if (response.ok) {
+
+									// Show and reset progress bar
+									progressBar.style.display = 'block';
+									progressBar.value = 0;
+
+									// Disable button and show loading state
+									transcribeButton.disabled = true;
+									transcribeButton.textContent = 'Uploading...';
+
+									// Create XMLHttpRequest
+									const xhr = new XMLHttpRequest();
+									xhr.open('POST', '/transcribe', true);
+
+									xhr.upload.onprogress = function (event) {
+										if (event.lengthComputable) {
+											const percent = Math.round((event.loaded / event.total) * 100);
+											progressBar.value = percent;
+										}
+									};
+
+									xhr.onload = function () {
+										progressBar.style.display = 'none';
+										transcribeButton.disabled = false;
+										transcribeButton.textContent = 'Transcribe';
+
+										if (xhr.status === 200) {
+											const result = JSON.parse(xhr.responseText);
 											document.getElementById('transcription-output').textContent = result.transcription;
 											const downloadLink = document.getElementById('download-link');
 											downloadLink.href = result.download_url;
 											downloadLink.style.display = 'block';
 										} else {
-											alert(result.error || 'An error occurred during transcription.');
+											let errorMsg = 'An error occurred during transcription.';
+											try {
+												errorMsg = JSON.parse(xhr.responseText).error || errorMsg;
+											} catch {}
+											alert(errorMsg);
 										}
-									} catch (error) {
-										console.error('Error:', error);
-										alert('An error occurred while connecting to the server.');
-									} finally {
-										// Remove loading indicator and re-enable the button
-										loadingIndicator.remove();
+									};
+
+									xhr.onerror = function () {
+										progressBar.style.display = 'none';
 										transcribeButton.disabled = false;
 										transcribeButton.textContent = 'Transcribe';
-									}
+										alert('An error occurred while connecting to the server.');
+									};
+
+									xhr.send(formData);
 								});
 							</script>
 						<!-- Work -->
