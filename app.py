@@ -10,8 +10,8 @@ load_dotenv()
 
 app = Flask(__name__)
 # Define a persistent directory for storing transcription files
-PERSISTENT_DIR = os.path.join(os.getenv('HOME', '/home'), 'site', 'transcriptions')
-os.makedirs(PERSISTENT_DIR, exist_ok=True)  # Ensure the directory exists
+PERSISTENT_DIR = '/home/site/transcriptions'
+os.makedirs(PERSISTENT_DIR, exist_ok=True)
 
 @app.route('/')
 def index():
@@ -37,6 +37,8 @@ def transcribe():
         # Save the uploaded file temporarily
         audio_file_path = os.path.join(PERSISTENT_DIR, unique_filename)
         audio_file.save(audio_file_path)
+        if not os.path.exists(audio_file_path):
+            raise FileNotFoundError(f"Failed to save audio file at '{audio_file_path}'")
 
         # Transcribe the audio file
         transcription_text = transcribe_audio(audio_file_path, language)
