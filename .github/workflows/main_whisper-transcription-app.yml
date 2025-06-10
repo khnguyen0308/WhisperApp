@@ -4,13 +4,12 @@
 
 name: Build and deploy Python app to Azure Web App - whisper-transcription-app
 
-
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-  
+
 env:
   AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
   AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
@@ -37,7 +36,11 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
         
-      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+      # Optional: Add step to run tests here
+
+      # ✅ NEW: Add execute permission to the startup script to avoid errors
+      - name: Set execute permission for startup script
+        run: chmod +x startup.sh
 
       - name: Zip artifact for deployment
         run: zip release.zip ./* -r
@@ -66,9 +69,9 @@ jobs:
         with:
           name: python-app
 
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
-
+      # ❌ REMOVED: The unzip step is no longer needed
+      # - name: Unzip artifact for deployment
+      #  run: unzip release.zip
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -77,10 +80,18 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_5EF427502E7F490AA7D4E1C7FBB51ACD }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_6F4909D536CC49B99E2C2E09B04A5277 }}
 
+      # ✅ NEW (Optional but Recommended): Set the startup command via CLI
+      - name: Set Startup Command
+        uses: azure/cli@v2
+        with:
+          inlineScript: |
+            az webapp config set --resource-group <YOUR_RESOURCE_GROUP> --name 'whisper-transcription-app' --startup-file './startup.sh'
+
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
           app-name: 'whisper-transcription-app'
           slot-name: 'Production'
-          
+          # ✅ CHANGED: Deploy the zip file directly
+          package: 'release.zip'
