@@ -7,11 +7,11 @@ from pydub.utils import which
 from dotenv import load_dotenv
 
 load_dotenv()
-print("Using endpoint:", os.getenv("AZURE_OPENAI_ENDPOINT"))
+print(f"Using endpoint:", os.getenv("AZURE_OPENAI_ENDPOINT"))
 
 # Load environment variables
 openai.api_key = os.getenv("AZURE_OPENAI_API_KEY")
-openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT")  # Example: https://YOUR_RESOURCE_NAME.openai.azure.com/
+openai.api_base = os.getenv("AZURE_OPENAI_ENDPOINT")  
 openai.api_type = "azure"
 openai.api_version = "2024-06-01"
 

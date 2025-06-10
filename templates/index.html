@@ -103,18 +103,71 @@
 										}
 									})
 									.catch(error => console.error('Error loading languages:', error));
-							
+
+								/**
+								* NEW POLLING FUNCTION
+								* This function repeatedly checks the status of the transcription task.
+								* @param {string} statusUrl - The URL to poll for the task status.
+								*/
+								function pollStatus(statusUrl) {
+									const transcribeButton = document.getElementById('transcribe-button');
+									const transcriptionOutput = document.getElementById('transcription-output');
+									const downloadLink = document.getElementById('download-link');
+
+									fetch(statusUrl)
+										.then(response => response.json())
+										.then(task => {
+											switch (task.status) {
+												case 'completed':
+													// TASK IS DONE: Update the UI with the final result.
+													transcriptionOutput.value = task.transcription;
+													downloadLink.href = task.download_url;
+													downloadLink.style.display = 'inline-block';
+													transcribeButton.disabled = false;
+													transcribeButton.textContent = 'Transcribe';
+													break;
+												
+												case 'processing':
+													// TASK IS STILL RUNNING: Wait 5 seconds and check again.
+													transcriptionOutput.value = "Processing... Please wait. This may take several minutes for large files.";
+													setTimeout(() => pollStatus(statusUrl), 5000); // Poll every 5 seconds
+													break;
+
+												case 'failed':
+													// TASK FAILED: Show an error message.
+													alert('Transcription failed: ' + task.error);
+													transcriptionOutput.value = "An error occurred. Please try again.";
+													transcribeButton.disabled = false;
+													transcribeButton.textContent = 'Transcribe';
+													break;
+											}
+										})
+										.catch(error => {
+											console.error('Polling error:', error);
+											alert('An error occurred while checking the transcription status.');
+											transcribeButton.disabled = false;
+											transcribeButton.textContent = 'Transcribe';
+										});
+								}
+
+								// Attach event listener to the transcribe button
 								document.getElementById('transcribe-button').addEventListener('click', function () {
 									const transcribeButton = document.getElementById('transcribe-button');
 									const audioFile = document.getElementById('audio-file').files[0];
 									const language = document.getElementById('language-category').value;
 									const outputFormat = document.getElementById('output-format').value;
 									const progressBar = document.getElementById('upload-progress');
+									const transcriptionOutput = document.getElementById('transcription-output');
+									const downloadLink = document.getElementById('download-link');
 
 									if (!audioFile) {
 										alert('Please select an audio file.');
 										return;
 									}
+
+									// Reset previous results
+									transcriptionOutput.value = '';
+									downloadLink.style.display = 'none';
 
 									// Prepare form data
 									const formData = new FormData();
@@ -130,7 +183,7 @@
 									transcribeButton.disabled = true;
 									transcribeButton.textContent = 'Uploading...';
 
-									// Create XMLHttpRequest
+									// Create XMLHttpRequest to handle upload and get progress
 									const xhr = new XMLHttpRequest();
 									xhr.open('POST', '/transcribe', true);
 
@@ -138,26 +191,30 @@
 										if (event.lengthComputable) {
 											const percent = Math.round((event.loaded / event.total) * 100);
 											progressBar.value = percent;
+											if (percent === 100) {
+												transcribeButton.textContent = 'Processing...';
+											}
 										}
 									};
 
 									xhr.onload = function () {
 										progressBar.style.display = 'none';
-										transcribeButton.disabled = false;
-										transcribeButton.textContent = 'Transcribe';
 
-										if (xhr.status === 200) {
+										// Check if the request was accepted (status 202)
+										if (xhr.status === 202) {
 											const result = JSON.parse(xhr.responseText);
-											document.getElementById('transcription-output').textContent = result.transcription;
-											const downloadLink = document.getElementById('download-link');
-											downloadLink.href = result.download_url;
-											downloadLink.style.display = 'block';
+											transcriptionOutput.value = "Upload complete. Your file is now being processed...";
+											// Start polling for the result using the new function
+											pollStatus(result.status_url);
 										} else {
+											// Handle immediate errors from the server (e.g., bad request)
 											let errorMsg = 'An error occurred during transcription.';
 											try {
 												errorMsg = JSON.parse(xhr.responseText).error || errorMsg;
 											} catch {}
 											alert(errorMsg);
+											transcribeButton.disabled = false;
+											transcribeButton.textContent = 'Transcribe';
 										}
 									};
 
