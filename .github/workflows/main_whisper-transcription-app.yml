@@ -85,7 +85,7 @@ jobs:
         uses: azure/cli@v2
         with:
           inlineScript: |
-            az webapp config set --resource-group <WhisperApp> --name 'whisper-transcription-app' --startup-file './startup.sh'
+            az webapp config set --resource-group WhisperApp --name 'whisper-transcription-app' --startup-file './startup.sh'
 
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v3
