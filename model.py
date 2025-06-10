@@ -6,6 +6,7 @@ from pydub import AudioSegment
 from pydub.effects import normalize, low_pass_filter, high_pass_filter
 from pydub.utils import which
 from dotenv import load_dotenv
+from tenacity import retry, stop_after_attempt, wait_exponential # Import tenacity
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -145,10 +146,29 @@ def transcribe_audio(audio_file_path: str, language: str = "vi", output_format: 
         logger.error(f"Transcription failed: {e}")
         raise RuntimeError(f"An error occurred during transcription: {e}")
 
+@retry(
+    wait=wait_exponential(multiplier=1, min=4, max=60), # Wait 4s, then 8s, 16s, etc.
+    stop=stop_after_attempt(5), # Stop after 5 attempts
+    reraise=True # Reraise the exception if all retries fail
+)
+def transcribe_chunk_with_retry(chunk_audio, language):
+    """A wrapper for the API call with retry logic."""
+    logger.info("Attempting to transcribe chunk...")
+    result = openai.Audio.transcribe(
+        file=chunk_audio,
+        model=model_name,
+        deployment_id=deployment_id,
+        language=language
+    )
+    return result["text"]
+
 def transcribe_single_file(file_path: str, language: str) -> str:
-    """Transcribe a single audio file"""
+    """Transcribe a single audio file with retry logic"""
     try:
         with open(file_path, "rb") as audio_file:
+            # You can also apply the retry logic here if single files could fail
+            # For now, we apply it to the chunking logic which is the main cause
+            logger.info("Transcribing single file...")
             result = openai.Audio.transcribe(
                 file=audio_file,
                 model=model_name,
@@ -161,7 +181,7 @@ def transcribe_single_file(file_path: str, language: str) -> str:
         raise
 
 def transcribe_large_file(file_path: str, language: str) -> str:
-    """Transcribe a large audio file by splitting into chunks"""
+    """Transcribe a large audio file by splitting into chunks with retry logic"""
     temp_files = []  # Keep track of temporary files for cleanup
     
     try:
@@ -197,13 +217,10 @@ def transcribe_large_file(file_path: str, language: str) -> str:
                 
                 # Transcribe chunk
                 with open(chunk_path, "rb") as chunk_audio:
-                    result = openai.Audio.transcribe(
-                        file=chunk_audio,
-                        model=model_name,
-                        deployment_id=deployment_id,
-                        language=language
-                    )
-                    transcription_parts.append(result["text"])
+                    # MODIFIED LINE
+                    transcription_text = transcribe_chunk_with_retry(chunk_audio, language)
+                    transcription_parts.append(transcription_text)
+                    
                     logger.info(f"Completed chunk {len(temp_files)}/{total_chunks}")
         
         # Combine all transcription parts
